@@ -38,32 +38,52 @@ def iter_summary_from_event_file(event_file):
         yield step, value
 
 
+# create webserver
+import flask
+app = flask.Flask(__name__)
+
+# TODO do not store them all!
+summary_db = dict()
+
+@app.route('/<int:step>/')
+def browse(step):
+  # TODO: Use HTML templates
+  try:
+    tag_names = summary_db[step]
+
+    response_html = ['<h1>Step %d</h1>' % step]
+    response_html.append('<ul>')
+    for tag in sorted(tag_names):
+      response_html.append('<li><a href="{tag}">{tag}</a></li>'.format(tag=tag))
+    response_html.append('</ul>')
+
+    response = flask.make_response('\n'.join(response_html))
+    return response
+  except KeyError:
+    flask.abort(404)
+
+@app.route('/<int:step>/<path:tag_name>')
+def get_data(step, tag_name):
+  logging.debug("Requested : {}, {}".format(step, tag_name))
+  try:
+    image_str = summary_db[step][tag_name]
+    response = flask.make_response(image_str.encoded_image_string)
+    response.headers['Content-Type'] = 'image/png'
+    return response
+  except KeyError:
+    flask.abort(404)
+
+
 def main(args):
   FLAGS = args
   #logdir = os.path.expanduser(FLAGS.logdir)
   event_file = os.path.expanduser(FLAGS.event_file)
 
-  # TODO do not store them all!
-  summary_db = dict()
-
+  # build summary_db
   for step, value in iter_summary_from_event_file(event_file):
     summary_db.setdefault(step, {})[value.tag] = value.image  # tf.summary.Summary.Image
 
-  # create webserver
-  import flask
-  app = flask.Flask(__name__)
-
-  @app.route('/<int:step>/<path:tag_name>')
-  def get_data(step, tag_name):
-    logging.debug("Requested : {}, {}".format(step, tag_name))
-    try:
-      image_str = summary_db[step][tag_name]
-      response = flask.make_response(image_str.encoded_image_string)
-      response.headers['Content-Type'] = 'image/png'
-      return response
-    except KeyError:
-      flask.abort(404)
-
+  # run the webserver
   logging.info("Serving in port {} ...".format(FLAGS.port))
   app.run(host='0.0.0.0', port=FLAGS.port)
 
