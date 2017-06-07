@@ -5,6 +5,14 @@ This is a random collection of utilities for inspecting TensorFlow summary files
 
 *Under development (so for personal use at this point)!*
 
+## `tb`: Launch TensorBoard
+
+The CLI arguments of `tensorboard` does suck. We can launch it more easily:
+
+```
+tb logdir/1 logdir/shell_expansion/*
+tb --port 6006 logdir/*
+```
 
 ## Image Viewer
 
