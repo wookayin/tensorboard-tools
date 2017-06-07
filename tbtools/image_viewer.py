@@ -15,15 +15,27 @@ logging.set_verbosity(logging.INFO)
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--event_file', default='', type=str)
 parser.add_argument('--port', default=7006, type=int)
+parser.add_argument('--max_step', default=None, type=int)
 
 
-def iter_summary_from_event_file(event_file):
+def iter_summary_from_event_file(event_file, max_step=None):
+  """
+  Iterates all the image summaries in the event_file.
+
+  Args:
+    event_file: the path to the event file.
+    max_step: The maximum step to be truncated at. If None (defaults),
+      iterates all the steps and summaries.
+  """
   if not os.path.exists(event_file):
     raise IOError(event_file)
 
   for event in tf.train.summary_iterator(event_file):
     step = int(event.step)
     logging.info("Reading step {}, event_file={}".format(step, event_file))
+    if max_step is not None and step > max_step:
+      break
+
     if event.HasField('summary'):
       for value in event.summary.value:
         if not value.HasField('image'):
@@ -76,7 +88,7 @@ def main(args):
   event_file = os.path.expanduser(FLAGS.event_file)
 
   # build summary_db
-  for step, value in iter_summary_from_event_file(event_file):
+  for step, value in iter_summary_from_event_file(event_file, max_step=args.max_step):
     summary_db.setdefault(step, {})[value.tag] = value.image  # tf.summary.Summary.Image
 
   # run the webserver
