@@ -32,7 +32,8 @@ def iter_summary_from_event_file(event_file, max_step=None):
 
   for event in tf.train.summary_iterator(event_file):
     step = int(event.step)
-    logging.info("Reading step {}, event_file={}".format(step, event_file))
+    if step % 100 == 0:
+      logging.info("Reading step {}, event_file={}".format(step, event_file))
     if max_step is not None and step > max_step:
       break
 
