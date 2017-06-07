@@ -14,6 +14,13 @@ tb logdir/1 logdir/shell_expansion/*
 tb --port 6006 logdir/*
 ```
 
+Automatically scan train_dirs from currently running TensorFlow processes:
+
+```
+tb --auto
+tb --auto <pattern>
+```
+
 ## Image Viewer
 
 Image summary in Tensorboard does suck. Run a server that would parse an event file:
