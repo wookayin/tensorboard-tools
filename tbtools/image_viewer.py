@@ -8,9 +8,6 @@ from collections import defaultdict
 
 import tensorflow as tf
 from tensorflow.python.platform import tf_logging as logging
-from tensorflow.python.summary import event_file_inspector as efi
-from tensorflow.python.summary import event_multiplexer
-from tensorflow.tensorboard.backend import server
 
 logging.set_verbosity(logging.INFO)
 
@@ -24,8 +21,7 @@ def iter_summary_from_event_file(event_file):
   if not os.path.exists(event_file):
     raise IOError(event_file)
 
-  generator = efi.generator_from_event_file(event_file)
-  for event in generator:
+  for event in tf.train.summary_iterator(event_file):
     step = int(event.step)
     logging.info("Reading step {}, event_file={}".format(step, event_file))
     if event.HasField('summary'):
