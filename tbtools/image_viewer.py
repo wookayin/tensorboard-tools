@@ -16,6 +16,7 @@ parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--event_file', default='', type=str)
 parser.add_argument('--port', default=7006, type=int)
 parser.add_argument('--max_step', default=None, type=int)
+parser.add_argument('--debug', action='store_true')
 
 
 def iter_summary_from_event_file(event_file, max_step=None):
@@ -53,6 +54,20 @@ app = flask.Flask(__name__)
 
 # TODO do not store them all!
 summary_db = dict()
+event_file = None
+
+@app.route('/')
+def index():
+  response_html = ['<h1>%s</h1>' % 'TensorBoard Image Viewer']
+  response_html.append('Event file: <pre style="display: inline-block">%s</pre>' % event_file)
+  response_html.append('<ul>')
+  for step in sorted(summary_db.keys()):
+    response_html.append('<li><a href="/{step}">Step {step}</a></li>'.format(step=step))
+  response_html.append('</ul>')
+  summary_db.keys()
+
+  response = flask.make_response('\n'.join(response_html))
+  return response
 
 @app.route('/<int:step>/')
 def browse(step):
@@ -86,6 +101,7 @@ def get_data(step, tag_name):
 def main(args):
   FLAGS = args
   #logdir = os.path.expanduser(FLAGS.logdir)
+  global event_file
   event_file = os.path.expanduser(FLAGS.event_file)
 
   # build summary_db
@@ -94,7 +110,7 @@ def main(args):
 
   # run the webserver
   logging.info("Serving in port {} ...".format(FLAGS.port))
-  app.run(host='0.0.0.0', port=FLAGS.port)
+  app.run(host='0.0.0.0', port=FLAGS.port, debug=args.debug)
 
 if __name__ == '__main__':
   args = parser.parse_args()
