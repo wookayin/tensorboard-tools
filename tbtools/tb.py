@@ -41,6 +41,19 @@ def get_available_port(begin, end):
     raise RuntimeError("No available ports")
 
 
+def is_cmdline_tensorboard(cmdline):
+    """
+    Heuristically detect whether the current process is tensorboard or not.
+    """
+    if len(cmdline) < 1:
+        return False
+
+    if os.path.basename(cmdline[0]) in ('python', 'python3'):
+        return is_cmdline_tensorboard(cmdline[1:])
+    elif os.path.basename(cmdline[0]) == 'tensorboard':
+        return True
+    return False
+
 def scan_train_dirs(*patterns):
     print(YELLOW("Auto-scanning train_dirs from running processes ..."))
 
@@ -48,6 +61,8 @@ def scan_train_dirs(*patterns):
         for proc in psutil.process_iter():
             try:
                 for f in proc.open_files():
+                    if is_cmdline_tensorboard(proc.cmdline()):
+                        continue
                     if '.tfevents.' in f.path:
                         yield proc, f
             except psutil.AccessDenied:
@@ -84,6 +99,8 @@ def main():
     print('')
 
     port = get_available_port(args.port, args.port + 100)
+    print(YELLOW("Tensorboard Running at Port {} !".format(port)))
+
     cmd = 'tensorboard --port="{}" --logdir="{}"'.format(
         port,
         ','.join(["%s:%s" % (os.path.basename(s), s) for s in args.dirs])
