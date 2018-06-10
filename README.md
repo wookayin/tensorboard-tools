@@ -5,6 +5,12 @@ This is a random collection of utilities for inspecting TensorFlow summary files
 
 *Under development (so for personal use at this point)!*
 
+### Install
+
+```
+pip install -I git+https://github.com/wookayin/tensorboard-tools
+```
+
 ## `tb`: Launch TensorBoard
 
 The CLI arguments of `tensorboard` does suck. We can launch it more easily:
