@@ -109,7 +109,11 @@ def main():
         cmd += ' 2>/dev/null'
 
     print(WHITE(cmd))
-    subprocess.call(cmd, shell=True)
+
+    # Disable CUDA for tensorboard by default
+    my_env = os.environ.copy()
+    my_env["CUDA_VISIBLE_DEVICES"] = ""
+    subprocess.call(cmd, shell=True, env=my_env)
 
 if __name__ == '__main__':
     sys.exit(main())
