@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
+
 import subprocess
 import argparse
 import os.path
@@ -54,6 +56,7 @@ def is_cmdline_tensorboard(cmdline):
         return True
     return False
 
+
 def scan_train_dirs(*patterns):
     print(YELLOW("Auto-scanning train_dirs from running processes ..."))
 
@@ -72,14 +75,14 @@ def scan_train_dirs(*patterns):
     for proc, f in _scan():
         dirname = os.path.dirname(f.path)
         ctime = os.path.getctime(f.path)
-        print(" Detected %s from process %s" % (f.path, proc.pid))
+        print(" Detected %s from process %s" % (f.path, WHITE(proc.pid)))
         if not patterns or any(p in f.path for p in patterns):
             dirs.append(dirname)
 
     return list(sorted(set(dirs)))
 
 def main():
-    args = parser.parse_args()
+    args, unknown_args = parser.parse_known_args()
     args.dirs = [s for s in args.dirs if os.path.isdir(s)]
 
     if args.auto is not None:  # -- auto flag given
@@ -99,21 +102,25 @@ def main():
     print('')
 
     port = get_available_port(args.port, args.port + 100)
-    print(YELLOW("Tensorboard Running at Port {} !".format(port)))
+    print(YELLOW("Tensorboard Running at port {} !".format(port)))
 
-    cmd = 'tensorboard --port="{}" --logdir="{}"'.format(
-        port,
-        ','.join(["%s:%s" % (os.path.basename(s), s) for s in args.dirs])
-    )
+    cmd = ['tensorboard',
+           '--port', str(port),
+           '--logdir', ','.join(["%s:%s" % (os.path.basename(s), s) for s in args.dirs]),
+           # TODO make additional TF parameters configurable
+           '--samples_per_plugin', 'images=100',
+           ]
     if args.quiet:
-        cmd += ' 2>/dev/null'
+        cmd += [' 2>/dev/null']
 
-    print(WHITE(cmd))
+    print(WHITE(subprocess.list2cmdline(cmd)))
+    print('', flush=True)
 
     # Disable CUDA for tensorboard by default
     my_env = os.environ.copy()
     my_env["CUDA_VISIBLE_DEVICES"] = ""
-    subprocess.call(cmd, shell=True, env=my_env)
+    subprocess.call(cmd, shell=False, env=my_env)
+
 
 if __name__ == '__main__':
     sys.exit(main())
