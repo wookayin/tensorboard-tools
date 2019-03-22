@@ -116,6 +116,11 @@ def main():
     print(WHITE(subprocess.list2cmdline(cmd)))
     print('', flush=True)
 
+    # Change tmux pane/window title
+    title_msg = u"(tb:%d) %s" % (port, " ".join([os.path.basename(s) for s in args.dirs]))
+    sys.stdout.buffer.write(b'\033]2;' + title_msg.encode() + b'\007')
+    sys.stdout.flush()
+
     # Disable CUDA for tensorboard by default
     my_env = os.environ.copy()
     my_env["CUDA_VISIBLE_DEVICES"] = ""
