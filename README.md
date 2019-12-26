@@ -18,6 +18,7 @@ The CLI arguments of `tensorboard` sucks. We can launch it more easily:
 ```
 tb logdir/1 logdir/shell_expansion/*
 tb --port 6006 logdir/*
+tb `gsutil ls -d "gs://bucket/exp/*"` logdir/*
 ```
 
 Automatically scan train_dirs from currently running TensorFlow processes:
