@@ -29,6 +29,16 @@ YELLOW = lambda msg: ("\033[0;33m") + str(msg) + ('\033[0m')
 WHITE  = lambda msg: ("\033[1;37m") + str(msg) + ('\033[0m')
 
 
+# try to get tensorboard version.
+IS_TENSORBORAD_V2 = False
+try:
+    tb_version = subprocess.getoutput("tensorboard --version")
+    if int(tb_version[0]) >= 2:
+        IS_TENSORBORAD_V2 = True
+except Exception as e:
+    sys.stderr.write("Warning: {}".format(e))
+
+
 def get_available_port(begin, end):
     """
     Get an available port within a range [begin, end).
@@ -105,11 +115,17 @@ def main():
     print(YELLOW("Tensorboard Running at port {} !".format(port)))
 
     cmd = ['tensorboard',
-           '--port', str(port),
-           '--logdir', ','.join(["%s:%s" % (os.path.basename(s), s) for s in args.dirs]),
-           # TODO make additional TF parameters configurable
-           '--samples_per_plugin', 'images=100',
-           ]
+           '--port', str(port)]
+    cmd += [
+        '--logdir_spec' if IS_TENSORBORAD_V2 else '--logdir',
+        ','.join(["%s:%s" % (os.path.basename(s), s) for s in args.dirs]),
+    ]
+
+    # TODO make additional TF parameters configurable
+    cmd += [
+        '--samples_per_plugin', 'images=100',
+    ]
+
     if args.quiet:
         cmd += [' 2>/dev/null']
 
