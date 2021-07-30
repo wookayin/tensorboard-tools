@@ -15,10 +15,12 @@ import psutil  # pip install psutil
 parser = argparse.ArgumentParser(description=r'''
 Launch tensorboard on multiple directories in an easy way.
 ''')
+parser.add_argument('--host', default=None, type=str,
+                    help='The host to bind. If not given, will --bind_all.')
 parser.add_argument('--port', default=6006, type=int,
-                    help='The port to use for tensorboard')
+                    help='The port to use for tensorboard.')
 parser.add_argument('--quiet', '-q', action='store_true',
-                    help='Run in silent mode')
+                    help='Run in silent mode.')
 parser.add_argument('--auto', action='append', nargs='?',
                     help='Automatically detect python process in progress; '
                          'specify pattern to filter with.')
@@ -128,6 +130,11 @@ def main():
 
     cmd = ['tensorboard',
            '--port', str(port)]
+    if args.host:
+        cmd += ['--host', args.host]
+    else:
+        cmd += ['--bind_all']  # By default, bind to 0.0.0.0
+
     cmd += [
         '--logdir_spec' if IS_TENSORBORAD_V2 else '--logdir',
         ','.join(["%s:%s" % (PurePath(s).name, s) for s in args.dirs]),
