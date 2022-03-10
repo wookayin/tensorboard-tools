@@ -34,11 +34,12 @@ WHITE  = lambda msg: ("\033[1;37m") + str(msg) + ('\033[0m')
 
 
 # try to get tensorboard version.
-IS_TENSORBORAD_V2 = False
+IS_TENSORBORAD_V2 = True
 try:
     tb_version = subprocess.getoutput("tensorboard --version")
-    if int(tb_version[0]) >= 2:
-        IS_TENSORBORAD_V2 = True
+    tb_version = tb_version.splitlines()[-1]
+    if tb_version[0].startswith('1'):
+        IS_TENSORBORAD_V2 = False
 except Exception as e:
     sys.stderr.write("Warning: {}".format(e))
 
