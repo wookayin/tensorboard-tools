@@ -97,6 +97,14 @@ def scan_train_dirs(*patterns):
     return list(sorted(set(dirs)))
 
 
+def rustboard_available():
+    try:
+        import tensorboard_data_server
+        return bool(tensorboard_data_server.server_binary())
+    except ImportError:
+        return False
+
+
 def is_dir(path):
     return (
         os.path.isdir(path)
@@ -136,10 +144,19 @@ def main():
     else:
         cmd += ['--bind_all']  # By default, bind to 0.0.0.0
 
-    cmd += [
-        '--logdir_spec' if IS_TENSORBORAD_V2 else '--logdir',
-        ','.join(["%s:%s" % (PurePath(s).name, s) for s in args.dirs]),
-    ]
+    if len(args.dirs) > 1:
+        cmd += [
+            '--logdir_spec' if IS_TENSORBORAD_V2 else '--logdir',
+            ','.join(["%s:%s" % (PurePath(s).name, s) for s in args.dirs]),
+        ]
+    else:
+        cmd += [
+            '--logdir',
+            args.dirs[0],
+        ]
+
+    if rustboard_available():
+        cmd += ['--load_fast', 'true']
 
     # TODO make additional TF parameters configurable
     cmd += [
